@@ -1,0 +1,55 @@
+# Use Ubuntu 23.10 as the base image
+FROM ubuntu:23.10
+
+LABEL maintainer="@k33g_org"
+
+ARG USER_NAME=${USER_NAME}
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
+ENV LC_COLLATE=C
+ENV LC_CTYPE=en_US.UTF-8
+
+
+# Install necessary packages including Python
+RUN <<EOF
+apt-get update
+apt-get install -y curl wget git build-essential xz-utils exa software-properties-common sshpass
+apt-get install -y python3 python3-pip python3-venv sudo
+
+rm -rf /var/lib/apt/lists/*
+EOF
+
+# Create a new user 'bob' with sudo privileges
+RUN <<EOF
+useradd -ms /bin/bash ${USER_NAME}
+echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+EOF
+
+# Switch to user 'bob'
+USER ${USER_NAME}
+
+# Set the working directory
+WORKDIR /home/${USER_NAME}
+
+# Create a virtual environment
+RUN python3 -m venv /home/${USER_NAME}/.venv
+
+# Add the virtual environment's bin directory to the PATH
+ENV PATH="/home/${USER_NAME}/.venv/bin:$PATH"
+
+# Add the activation command to the .bashrc file
+RUN echo "source /home/${USER_NAME}/.venv/bin/activate" >> /home/${USER_NAME}/.bashrc
+
+# Verify the Python environment
+RUN /bin/bash -c "source /home/${USER_NAME}/.venv/bin/activate && python3 --version"
+
+# ------------------------------------
+# Install OhMyBash
+# ------------------------------------
+RUN <<EOF
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+EOF

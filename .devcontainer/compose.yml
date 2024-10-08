@@ -1,0 +1,20 @@
+services:
+
+  python-workspace:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    environment:
+      - USER_NAME=bob
+    volumes:
+      - ../..:/workspaces:cached      
+    command: sleep infinity
+
+  download-deepseek-coder-v2:
+    image: curlimages/curl:8.6.0
+    entrypoint: ["curl", "host.docker.internal:11434/api/pull", "-d", "{\"name\": \"deepseek-coder-v2\"}"]
+
+  download-qwen2.5-coder-7b:
+    image: curlimages/curl:8.6.0
+    entrypoint: ["curl", "host.docker.internal:11434/api/pull", "-d", "{\"name\": \"qwen2.5-coder:7b\"}"]
+
